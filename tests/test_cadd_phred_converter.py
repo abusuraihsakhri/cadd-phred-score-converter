@@ -200,6 +200,21 @@ class TestCLIExecution(unittest.TestCase):
             self.assertEqual(ret, 0)
             self.assertTrue(os.path.exists(csv_out))
 
+    def test_cli_batch_subcommand(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_out = os.path.join(tmpdir, "variants_out.csv")
+            ret = cli.main(["batch", "-i", "sample.csv", "-o", csv_out])
+            self.assertEqual(ret, 0)
+            self.assertTrue(os.path.exists(csv_out))
+            with open(csv_out, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+                self.assertEqual(len(rows), 6)
+                self.assertEqual(rows[0]["gene_symbol"], "CFTR")
+                self.assertEqual(rows[0]["acmg_code"], "BP4")
+                self.assertEqual(rows[4]["gene_symbol"], "TP53")
+                self.assertEqual(rows[4]["acmg_code"], "PP3_STRONG")
+
 
 if __name__ == "__main__":
     unittest.main()

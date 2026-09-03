@@ -122,13 +122,27 @@ def process_batch_csv(input_csv: str, output_csv: Optional[str] = None) -> int:
             reader = csv.DictReader(f)
             rows = list(reader)
 
+        if not rows:
+            print(f"Warning: {input_csv} is empty.", file=sys.stderr)
+            return 0
+
         results = []
         for r in rows:
-            vid = r.get("variant_id") or r.get("id") or "VAR-001"
-            raw_str = r.get("raw_score") or r.get("cadd_raw")
+            # Look for variant identification or build from genomic coordinates
+            vid = (
+                r.get("variant_id")
+                or r.get("id")
+                or (
+                    f"chr{r.get('chromosome')}:{r.get('position')}_{r.get('ref_allele')}>{r.get('alt_allele')}"
+                    if r.get("chromosome") and r.get("position")
+                    else None
+                )
+                or "VAR-001"
+            )
+            raw_str = r.get("raw_score") or r.get("cadd_raw") or r.get("raw")
             phred_str = r.get("phred_score") or r.get("cadd_phred") or r.get("phred")
-            raw_val = float(raw_str) if raw_str else None
-            phred_val = float(phred_str) if phred_str else None
+            raw_val = float(raw_str) if raw_str not in (None, "") else None
+            phred_val = float(phred_str) if phred_str not in (None, "") else None
 
             if raw_val is None and phred_val is None:
                 phred_val = 15.0
@@ -136,11 +150,32 @@ def process_batch_csv(input_csv: str, output_csv: Optional[str] = None) -> int:
             csq_val = r.get("consequence", "missense_variant")
             csq = MolecularConsequence(csq_val) if csq_val in [c.value for c in MolecularConsequence] else MolecularConsequence.MISSENSE
 
+            loc = None
+            if r.get("chromosome") and r.get("position"):
+                try:
+                    loc = VariantLocation(
+                        chromosome=str(r.get("chromosome")),
+                        position=int(r.get("position")),
+                        ref_allele=str(r.get("ref_allele", "")),
+                        alt_allele=str(r.get("alt_allele", "")),
+                        gene_symbol=r.get("gene_symbol") or r.get("gene"),
+                    )
+                except Exception:
+                    loc = None
+
+            phylop_str = r.get("phylop_score") or r.get("phylop")
+            gerp_str = r.get("gerp_score") or r.get("gerp")
+            phylop_val = float(phylop_str) if phylop_str not in (None, "") else None
+            gerp_val = float(gerp_str) if gerp_str not in (None, "") else None
+
             var = VariantInput(
                 variant_id=vid,
+                location=loc,
                 raw_score=raw_val,
                 phred_score=phred_val,
-                consequence=csq
+                consequence=csq,
+                phylop_score=phylop_val,
+                gerp_score=gerp_val,
             )
             rep = CaddPhredConverter.evaluate_variant(var)
             row_dict = dict(r)
@@ -148,7 +183,9 @@ def process_batch_csv(input_csv: str, output_csv: Optional[str] = None) -> int:
             row_dict["cadd_phred"] = rep.phred_score
             row_dict["percentile"] = rep.percentile
             row_dict["acmg_code"] = rep.acmg_code
+            row_dict["acmg_tier"] = rep.acmg_tier.value
             row_dict["is_pathogenic"] = rep.is_pathogenic_predicted
+            row_dict["clinical_interpretation"] = rep.clinical_interpretation
             results.append(row_dict)
 
         if output_csv:
@@ -169,6 +206,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="CADD Raw <-> PHRED Score Converter & ACMG Variant Classifier"
     )
+    subparsers = parser.add_subparsers(dest="command", help="Subcommand to run")
+
+    # batch subcommand
+    batch_parser = subparsers.add_parser("batch", help="Batch process CSV variants")
+    batch_parser.add_argument("-i", "--input", "--input-csv", dest="input", required=True, help="Input CSV file path")
+    batch_parser.add_argument("-o", "--output", "--output-csv", dest="output", help="Output CSV file path")
+
     parser.add_argument("--interactive", "-i", action="store_true", help="Launch interactive converter mode")
     parser.add_argument("--demo", choices=["benign_synonymous", "intermediate_missense", "pathogenic_missense", "severe_stopgain", "all"], help="Run benchmark demo scenario")
     parser.add_argument("--variant-id", default="VAR-001", help="Variant identifier (e.g. rs12345 or chr17:43094861_G>A)")
@@ -183,6 +227,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--json", "-j", action="store_true", help="Output result as JSON")
 
     args = parser.parse_args(argv)
+
+    if args.command == "batch":
+        return process_batch_csv(args.input, args.output)
 
     if args.interactive:
         return interactive_mode()
