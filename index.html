@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Convert CADD PHRED-scaled scores to tail fractions, percentiles, and approximate ranks.">
+  <title>CADD PHRED Rank Converter</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Genomic score utility</p>
+        <h1>CADD PHRED Rank Converter</h1>
+        <p class="lede">Convert a CADD PHRED-scaled score into rank context without inferring pathogenicity.</p>
+      </div>
+      <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle dark mode" aria-pressed="false">◐</button>
+    </header>
+
+    <section class="workspace" aria-label="CADD PHRED converter">
+      <form id="converterForm" class="panel input-panel">
+        <div class="field-group">
+          <label for="phred">CADD PHRED score</label>
+          <input id="phred" name="phred" type="number" min="0" step="0.001" value="20" inputmode="decimal" required>
+          <p class="hint">Use the PHRED value reported by the relevant CADD release.</p>
+        </div>
+
+        <div class="field-group">
+          <label for="referenceSize">Reference variant count</label>
+          <input id="referenceSize" name="referenceSize" type="number" min="1" step="1" value="8600000000" inputmode="numeric" required>
+          <p class="hint">Default: ~8.6 billion possible GRCh37 substitutions described by CADD.</p>
+        </div>
+
+        <button class="primary" type="submit">Analyze</button>
+        <p id="error" class="error" role="alert" hidden></p>
+      </form>
+
+      <section class="panel results-panel" aria-live="polite" aria-labelledby="resultsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Result</p>
+            <h2 id="resultsTitle">Rank context</h2>
+          </div>
+          <span id="scoreBadge" class="badge">PHRED 20</span>
+        </div>
+
+        <div class="metrics">
+          <article class="metric"><span>Tail fraction</span><strong id="tailFraction">0.01</strong></article>
+          <article class="metric"><span>Top percent</span><strong id="topPercent">1%</strong></article>
+          <article class="metric"><span>Percentile</span><strong id="percentile">99%</strong></article>
+          <article class="metric"><span>Approx. rank from top</span><strong id="rank">86,000,000</strong></article>
+        </div>
+
+        <p id="context" class="context">CADD PHRED 20 is approximately within the top 1% of possible substitutions.</p>
+      </section>
+    </section>
+
+    <aside class="notice" aria-label="Method note">
+      <strong>Method note.</strong> CADD raw scores do not have a universal raw→PHRED formula; scaled scores depend on release-specific genome-wide ranking. This tool therefore does not fabricate that mapping and does not assign ACMG/AMP PP3/BP4 or a pathogenic/benign classification.
+    </aside>
+  </main>
+</body>
+</html>

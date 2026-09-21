@@ -1,7 +1,3 @@
-chromosome,position,ref_allele,alt_allele,gene_symbol,consequence,cadd_raw,cadd_phred,acmg_recommendation
-chr7,117199644,A,G,CFTR,synonymous_variant,-0.42,4.8,Benign Supporting (BP4: PHRED < 10)
-chr13,32914438,C,T,BRCA2,missense_variant,1.45,12.25,Intermediate / Indeterminate (PHRED 10-15)
-chr17,41244435,G,A,BRCA1,missense_variant,2.85,19.25,Potentially Deleterious (PHRED 15-20)
-chr17,43094861,G,A,BRCA1,missense_variant,4.35,24.5,Pathogenic Supporting (PP3: PHRED 20-30)
-chr17,7577121,C,T,TP53,stop_gained,8.5,36.25,Pathogenic Strong In-Silico (PP3: PHRED >= 30)
-chr2,48033742,G,A,MSH6,frameshift_variant,9.2,38.0,Pathogenic Strong In-Silico (PP3: PHRED >= 30)
+variant_id,chromosome,position,ref_allele,alt_allele,gene_symbol,consequence,cadd_raw,cadd_phred
+example-1,7,117252874,G,A,CFTR,missense_variant,0.125463,4.681
+example-2,17,7578394,T,C,TP53,missense_variant,3.667225,25.6
