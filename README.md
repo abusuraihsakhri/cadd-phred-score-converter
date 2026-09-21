@@ -1,5 +1,7 @@
 # CADD PHRED Rank Converter
 
+### [Open the Live Application →](https://abusuraihsakhri.github.io/cadd-phred-score-converter/)
+
 A small Python and browser utility for interpreting CADD PHRED-scaled scores as tail fractions, percentiles, and approximate genome-wide ranks.
 
 ## What it does
@@ -18,7 +20,7 @@ This project therefore does **not** automatically assign ACMG/AMP PP3/BP4 eviden
 
 ## Browser use
 
-Open `index.html` directly or use the GitHub Pages deployment. Enter a CADD PHRED score and select **Analyze**. The page runs locally in the browser and sends no entered values to a server.
+Open the live application above or `index.html` directly. Enter a CADD PHRED score and select **Analyze**. The page runs locally in the browser and sends no entered values to a server.
 
 The UI is responsive, defaults to a light theme, and includes a dark-mode toggle.
 
@@ -63,7 +65,7 @@ The default `N = 8.6 billion` follows the approximate GRCh37 substitution count 
 
 ```bash
 python -m pip install pytest
-python -m compileall -q cadd_phred_converter.py cli.py
+python -m compileall -q .
 python -m pytest -q
 node tests/web_smoke.js
 ```
